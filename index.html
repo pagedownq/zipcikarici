@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZIP İçindeki TXT Dosyalarını Çıkart</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+        }
+        h2 {
+            color: #333;
+        }
+        input {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 100%;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .file-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .file-list a {
+            display: block;
+            padding: 8px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .file-list a:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>ZIP İçindeki TXT Dosyalarını Çıkart</h2>
+        <input type="file" id="zipInput" accept=".zip">
+        <button onclick="extractTxtFiles()">Çıkart</button>
+        <div id="fileList" class="file-list"></div>
+    </div>
+    
+    <script>
+        async function extractTxtFiles() {
+            const fileInput = document.getElementById("zipInput");
+            if (fileInput.files.length === 0) {
+                alert("Lütfen bir ZIP dosyası yükleyin!");
+                return;
+            }
+            
+            const zipFile = fileInput.files[0];
+            const zip = new JSZip();
+            const zipData = await zip.loadAsync(zipFile);
+            let fileListDiv = document.getElementById("fileList");
+            fileListDiv.innerHTML = "<h3>TXT Dosyaları:</h3>";
+            
+            Object.keys(zipData.files).forEach(async (fileName) => {
+                if (fileName.endsWith(".txt")) {
+                    const fileData = await zipData.files[fileName].async("text");
+                    const blob = new Blob([fileData], { type: "text/plain" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = fileName;
+                    link.innerText = `İndir: ${fileName}`;
+                    fileListDiv.appendChild(link);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
