@@ -12,57 +12,103 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            background-color: #f4f4f4;
+            min-height: 100vh;
             margin: 0;
             text-align: center;
+            background: url('./foto.png') no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
         }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: -1;
+        }
+        
         .container {
-            background: white;
-            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
             width: 90%;
-            max-width: 400px;
+            max-width: 450px;
+            backdrop-filter: blur(5px);
         }
+        
         h2 {
             color: #333;
+            margin-bottom: 20px;
         }
+        
         input {
-            margin: 10px 0;
-            padding: 8px;
+            margin: 15px 0;
+            padding: 10px;
             border-radius: 6px;
             border: 1px solid #ccc;
             width: 100%;
+            box-sizing: border-box;
+            font-size: 16px;
         }
+        
         button {
             background: #007bff;
             color: white;
-            padding: 10px;
+            padding: 12px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
         }
+        
         button:hover {
             background: #0056b3;
         }
+        
         .file-list {
-            margin-top: 20px;
+            margin-top: 25px;
             text-align: left;
         }
+        
+        .file-list h3 {
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        
         .file-list a {
             display: block;
-            padding: 8px;
+            padding: 10px;
             background: #28a745;
             color: white;
             text-decoration: none;
             border-radius: 6px;
-            margin-top: 5px;
+            margin-top: 10px;
             text-align: center;
+            transition: background 0.3s;
         }
+        
         .file-list a:hover {
             background: #218838;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+                width: 95%;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
@@ -84,23 +130,36 @@
             
             const zipFile = fileInput.files[0];
             const zip = new JSZip();
-            const zipData = await zip.loadAsync(zipFile);
-            let fileListDiv = document.getElementById("fileList");
-            fileListDiv.innerHTML = "<h3>TXT Dosyaları:</h3>";
             
-            Object.keys(zipData.files).forEach(async (fileName) => {
-                if (fileName.endsWith(".txt")) {
-                    const fileData = await zipData.files[fileName].async("text");
-                    const blob = new Blob([fileData], { type: "text/plain" });
-                    const url = URL.createObjectURL(blob);
-                    
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.download = fileName;
-                    link.innerText = `İndir: ${fileName}`;
-                    fileListDiv.appendChild(link);
+            try {
+                const zipData = await zip.loadAsync(zipFile);
+                let fileListDiv = document.getElementById("fileList");
+                fileListDiv.innerHTML = "<h3>TXT Dosyaları:</h3>";
+                
+                let txtFilesFound = false;
+                
+                for (const fileName of Object.keys(zipData.files)) {
+                    if (fileName.toLowerCase().endsWith(".txt")) {
+                        txtFilesFound = true;
+                        const fileData = await zipData.files[fileName].async("text");
+                        const blob = new Blob([fileData], { type: "text/plain" });
+                        const url = URL.createObjectURL(blob);
+                        
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.download = fileName;
+                        link.innerText = `İndir: ${fileName}`;
+                        fileListDiv.appendChild(link);
+                    }
                 }
-            });
+                
+                if (!txtFilesFound) {
+                    fileListDiv.innerHTML = "<p>ZIP dosyasında TXT dosyası bulunamadı.</p>";
+                }
+            } catch (error) {
+                alert("ZIP dosyası okunurken bir hata oluştu: " + error.message);
+                console.error(error);
+            }
         }
     </script>
 </body>
